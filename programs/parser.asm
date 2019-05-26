@@ -598,6 +598,52 @@ end:
 ###################################################################################
 ###################################################################################
 
+.macro VALIDATE_IMMEDIATE
+	addiu $sp, $sp, -4
+	sw $t0, ($sp)
+	
+	la $t0, buffer_str_word
+first:
+	lb $a0, ($t0)
+	IS_NUMBER
+	seq $a0, $a0, '-'
+	or $a0, $v0, $a0
+	beqz $a0, notok
+other:
+	add $t0, $t0, 1
+	lb $a0, ($t0)
+	beqz $a0, ok
+	IS_NUMBER
+	beqz $v0, notok
+	j other
+notok:
+	li $v0, 0
+	j end
+ok:
+	li $v1, 0
+	j end
+end:
+	lw $t0, ($sp)
+	addiu $sp, $sp, 4
+.end_macro 
+
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+
 .macro VALIDATE_REGISTER
 
 	addiu $sp, $sp, -12
@@ -605,18 +651,20 @@ end:
 	sw $t1, 4($sp)
 	sw $t9, 8($sp)
 
-	la $t0, buffer_str_word
+	la $a0, buffer_str_word
 	li $t9, 1
 first:
-	lb $a0, ($t0)
-	beq $a0, '$', falsy
+	lb $t0, ($a0)
+	bne $t0, '$', falsy
 others:
-	addiu $t0, $t0, 1
-	lb $a0, ($t0)
+	addiu $a0, $a0, 1
+	lb $t0, ($a0)
+	beqz $t0, falsy
 	STRING_TO_INT
 	beqz $v1, falsy
+	
 	move $a0, $v0
-	IN_IMMEDIATE_EXCLUSIVE_RANGE -1, 32
+	IN_IMMEDIATE_EXCLUSIVE_RANGE(-1, 32)
 	beqz $v1, falsy
 	
 	j end
@@ -819,20 +867,97 @@ parseName:
 	
 	j wrongInput
 cADD: 
-	PRINT_CHAR 'a'
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	bnez $v0, wrongInput
 	j loop
+	
+	
 cADDI: 
-	PRINT_CHAR 'A'
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_IMMEDIATE
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	bnez $v0, wrongInput
 	j loop
+	
+	
 cJR: 
-	PRINT_CHAR 'j'
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	bnez $v0, wrongInput
 	j loop
+	
+	
 cNOOP: 
 	LENGTH buffer_input
 	bnez $v0, wrongInput
 	j loop
+	
+	
 cMULT: 
-	PRINT_CHAR 'm'
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	bnez $v0, wrongInput
+	
+	
 	j loop
 
 cJ: 
@@ -843,11 +968,19 @@ cJAL:
 	PARSE_FROM_INPUT_BUFFER
 	VALIDATE_LABEL
 	beqz $v0, wrongInput
+	
+	LENGTH buffer_input
+	bnez $v0, wrongInput
+	
 	j loop
+	
+	
 wrongInput:
 	PRINT ascii_wrong_input
 	addiu $t0, $t0, 1
 	j loop
+	
+	
 end:
 	PRINT newline
 	PRINT ascii_end_program
