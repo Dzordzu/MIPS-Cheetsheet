@@ -1,5 +1,9 @@
 
-# v0 - length
+# Notation:
+# a0 - src
+
+# Returns
+# 	v0 - length
 .macro LENGTH
 	addiu $sp, $sp, -4
 	sw $t0, 0($sp)
@@ -16,12 +20,14 @@ end:
 	addiu $sp, $sp, 4
 .end_macro 
 
-# v0 - pointer
-# v1 - position (if v1 already had value, it would be added there)
+# Returns
+# 	v0 - pointer
+# 	v1 - position (relative to the a0 pointer)
 .macro FIND (%symbol) 
 	addiu $sp, $sp, -8
 	sw $t0, 0($sp)
 	sw $t1, 4($sp)
+	li $v1, 0
 loop:
 	lb $t0, ($a0)
 	
