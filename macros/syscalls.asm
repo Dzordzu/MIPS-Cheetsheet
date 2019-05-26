@@ -34,4 +34,8 @@
 	base_numeric_PRINT (11, %message)
 .end_macro
 
+.macro PRINT_BYTE (%message)
+	base_numeric_PRINT (1, %message)
+.end_macro
+
 
