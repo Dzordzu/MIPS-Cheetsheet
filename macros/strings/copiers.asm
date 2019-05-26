@@ -35,17 +35,28 @@ end:
 .macro COPY_ASCII (%src, %trg, %size)
 	la $a0, %src
 	la $a1, %trg
+	COPY_ASCII %size
 .end_macro
 
 # Dependcies:
-#	* macros/strings/basic.asm (FIND sign)
-.macro COPY_ASCII_TO_SIGN (%sign)
+#	macros/strings/basic.asm (FIND sign)
+.macro COPY_ASCII_TO_SIGN_EXCLUSIVE (%sign)
 	addiu $sp, $sp, -4
 	sw $t0, ($sp)
 
+	move $t0, $a0
 	FIND %sign 
-	COPY_ASCII $v0
+	move $a0, $t0
+	
+	move $t0, $v1
+	COPY_ASCII $t0
 
 	lw $t0, ($sp)
 	addiu $sp, $sp, 4
 .end_macro
+
+.macro COPY_ASCII_TO_SIGN_EXCLUSIVE (%src, %trg, %sign)
+	la $a0, %src
+	la $a1, %trg
+	COPY_ASCII_TO_SIGN_EXCLUSIVE (%sign)
+.end_macro 	
