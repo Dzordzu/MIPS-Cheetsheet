@@ -3,14 +3,17 @@ i_ADD: .asciiz "ADD"
 i_ADDI: .asciiz "ADDI"
 i_J: .asciiz "J"
 i_NOOP: .asciiz "NOOP"
-j_MULT: .asciiz "MULT"
-j_JR: .asciiz "JR"
-j_JAL: .asciiz "JAL"
+i_MULT: .asciiz "MULT"
+i_JR: .asciiz "JR"
+i_JAL: .asciiz "JAL"
 
 buffer_input: .space 256
 buffer_str_word: .space 256
 buffer_2: .space 256
 allocated_bytes: .word 0
+ascii_enter_command: .asciiz "Please enter the command: \n"
+ascii_wrong_input: .asciiz "Wrong input. Please reenter the command\n"
+ascii_end_program: .asciiz "This is the end"
 
 .data
 	# Useful for debugging and logging
@@ -131,6 +134,11 @@ end:
 	addiu $sp, $sp, 4
 .end_macro 
 
+.macro LENGTH (%str)
+	la $a0, %str
+	LENGTH
+.end_macro
+
 ###################################################################################
 ###################################################################################
 ###################################################################################
@@ -198,7 +206,7 @@ end:
 .macro COMPARE_STR
 
 	addiu $sp, $sp, -8
-	sw $t0, ($sp)
+	sw $t0, 0($sp)
 	sw $t1, 4($sp)
 
 	li $v0, 1
@@ -240,7 +248,7 @@ notEqual:
 	li $v0, 0
 end:
 	lw $t1, 4($sp)
-	lw $t0, 4($sp)
+	lw $t0, 0($sp)
 	addiu $sp, $sp, 8
 .end_macro
 
@@ -287,7 +295,7 @@ end:
 .macro COPY_ASCII (%size)
 
 	addiu $sp, $sp, -8
-	sw $t0, ($sp)
+	sw $t0, 0($sp)
 	sw $t1, 4($sp) 
 
 	# Init iterations
@@ -309,7 +317,7 @@ loop:
 end:
 	sb $zero, ($a1)
 	lw $t1, 4($sp)
-	lw $t0, ($sp)
+	lw $t0, 0($sp)
 	addiu $sp, $sp, 8
 .end_macro
 
@@ -472,6 +480,7 @@ last:
 	COPY_ASCII_TO_SIGN_EXCLUSIVE '\n'
 	
 	sb $zero, buffer_input
+	j end
 end:
 	lw $t1, ($sp)
 	addiu $sp, $sp, 4
@@ -480,17 +489,82 @@ end:
 
 # t0 - iterator
 
+.data
+t0: "\nt0 = "
+
 .text
 	INPUT_WORD
 	move $t0, $v0
-	
+	addiu $t0, $t0, 1
 loop:
-
+	addiu $t0, $t0, -1
+	PRINT t0
+	PRINT_WORD $t0
+	PRINT newline
+	beqz $t0, end
+	
+	PRINT newline
+	PRINT ascii_enter_command
 	INPUT buffer_input, 255
 parseName:
 	PARSE_FROM_INPUT_BUFFER
-	PARSE_FROM_INPUT_BUFFER
-	PARSE_FROM_INPUT_BUFFER
-	PRINT buffer_input
+	
+	COMPARE_STR buffer_str_word, i_ADD
+	move $t1, $v0
+	bnez $t1, cADD
+	
+	COMPARE_STR buffer_str_word, i_ADDI
+	move $t1, $v0
+	bnez $t1, cADDI
+	
+	COMPARE_STR buffer_str_word, i_J
+	move $t1, $v0
+	bnez $t1, cJ	
+	
+	COMPARE_STR buffer_str_word, i_NOOP
+	move $t1, $v0
+	bnez $t1, cNOOP
+	
+	COMPARE_STR buffer_str_word, i_MULT
+	move $t1, $v0
+	bnez $t1, cMULT
+	
+	COMPARE_STR buffer_str_word, i_JR
+	move $t1, $v0
+	bnez $t1, cJR
+	
+	COMPARE_STR buffer_str_word, i_JAL
+	move $t1, $v0
+	bnez $t1, cJAL
+	
+	j wrongInput
+cADD: 
+	PRINT_CHAR 'a'
+	j loop
+cADDI: 
+	PRINT_CHAR 'A'
+	j loop
+cJ: 
+	PRINT_CHAR 'j'
+	j loop
+cNOOP: 
+	PRINT_CHAR 'n'
+	j loop
+	LENGTH buffer_input
+	bnez $v0, wrongInput
+	j loop
+cMULT: 
+	PRINT_CHAR 'm'
+	j loop
+
+cJR: 
+cJAL: 
+	PRINT_CHAR 'J'
+	j loop
+wrongInput:
+	PRINT ascii_wrong_input
+	addiu $t0, $t0, 1
+	j loop
+end:
 	PRINT newline
-	PRINT buffer_str_word
+	PRINT ascii_end_program
