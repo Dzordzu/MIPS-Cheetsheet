@@ -20,6 +20,11 @@ end:
 	addiu $sp, $sp, 4
 .end_macro 
 
+.macro LENGTH (%str)
+	la %str
+	LENGTH
+.end_macro
+
 # Returns
 # 	v0 - pointer
 # 	v1 - position (relative to the a0 pointer)
