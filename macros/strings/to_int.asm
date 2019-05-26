@@ -7,8 +7,6 @@
 # Results:
 # v0 - number
 # v1 - completeness (whole string was a number)
-.data
-newline: .asciiz "\n"
 .macro STRING_TO_INT
 	addiu $sp, $sp, -12
 	sw $t0, ($sp)
