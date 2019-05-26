@@ -440,9 +440,6 @@ end:
 ###################################################################################
 ###################################################################################
 
-.data
-test: "TEST"
-
 # v0 - emoty() ? 0 : 1
 .macro PARSE_FROM_INPUT_BUFFER
 	addiu $sp,$sp, -4
@@ -498,9 +495,11 @@ t0: "\nt0 = "
 	addiu $t0, $t0, 1
 loop:
 	addiu $t0, $t0, -1
-	PRINT t0
-	PRINT_WORD $t0
-	PRINT newline
+	
+	# PRINT t0
+	# PRINT_WORD $t0
+	# PRINT newline
+	
 	beqz $t0, end
 	
 	PRINT newline
@@ -548,8 +547,6 @@ cJ:
 	PRINT_CHAR 'j'
 	j loop
 cNOOP: 
-	PRINT_CHAR 'n'
-	j loop
 	LENGTH buffer_input
 	bnez $v0, wrongInput
 	j loop
