@@ -21,7 +21,7 @@ end:
 .end_macro 
 
 .macro LENGTH (%str)
-	la %str
+	la $a0, %str
 	LENGTH
 .end_macro
 
