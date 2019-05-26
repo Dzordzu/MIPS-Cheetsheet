@@ -432,18 +432,30 @@ end:
 ###################################################################################
 ###################################################################################
 
+.data
+test: "TEST"
+
+# v0 - emoty() ? 0 : 1
 .macro PARSE_FROM_INPUT_BUFFER
 	addiu $sp,$sp, -4
 	sw $t1, ($sp)
 	
 	la $a0, buffer_input
+	FIND ' '
+	move $t1, $v0
+	
+	la $a0, buffer_input
+	LENGTH
+	beqz $v0, end
+	
+	bge $v1, $v0, last
+	
+	la $a0, buffer_input
 	la $a1, buffer_str_word
 	COPY_ASCII_TO_SIGN_EXCLUSIVE ' '
 	
-	la $a0, buffer_input
-	FIND ' '
 	
-	move $a0, $v0
+	move $a0, $t1
 	addiu $a0, $a0, 1
 	la $a1, buffer_2
 	COPY_ASCII 256
@@ -452,6 +464,15 @@ end:
 	la $a1, buffer_input
 	COPY_ASCII 256
 	
+	j end
+
+last:
+	la $a0, buffer_input
+	la $a1, buffer_str_word
+	COPY_ASCII_TO_SIGN_EXCLUSIVE '\n'
+	
+	sb $zero, buffer_input
+end:
 	lw $t1, ($sp)
 	addiu $sp, $sp, 4
 .end_macro
@@ -469,4 +490,7 @@ loop:
 parseName:
 	PARSE_FROM_INPUT_BUFFER
 	PARSE_FROM_INPUT_BUFFER
+	PARSE_FROM_INPUT_BUFFER
 	PRINT buffer_input
+	PRINT newline
+	PRINT buffer_str_word
