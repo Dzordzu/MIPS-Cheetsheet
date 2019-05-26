@@ -1,23 +1,23 @@
 .data
 	# Useful for debugging and logging
 	newline: .asciiz "\n"
-	space: .asciiz  " "
+	ascii_space: .asciiz  " "
 	
-	arrow: .asciiz " -> "
-	long_arrow: .asciiz " ---> "
+	ascii_arrow: .asciiz " -> "
+	ascii_long_arrow: .asciiz " ---> "
 	
-	equals: .asciiz " = "
-	plus: .asciiz " + "
-	minus: .asciiz " - "
-	multipication: .asciiz " * "
-	division: .asciiz " / "
-	power: .asciiz "^"
+	ascii_equals: .asciiz " = "
+	ascii_plus: .asciiz " + "
+	ascii_minus: .asciiz " - "
+	ascii_multipicate: .asciiz " * "
+	ascii_divide: .asciiz " / "
+	ascii_power: .asciiz "^"
 	
-	equals: .asciiz " = "
-	less: .asciiz " < "
-	less_eq: .asciiz " <= "
-	greater: .asciiz " > "
-	greater_eq: .asciiz " >= "
+	ascii_equals: .asciiz " = "
+	ascii_less: .asciiz " < "
+	ascii_less_eq: .asciiz " <= "
+	ascii_greater: .asciiz " > "
+	ascii_greater_eq: .asciiz " >= "
 	
 	ascii_versus: .asciiz " vs "
 	ascii_and: .asciiz " and "
