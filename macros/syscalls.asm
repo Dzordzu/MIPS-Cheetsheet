@@ -26,6 +26,10 @@
         addiu $sp, $sp, 8
 .end_macro
 
+.macro PRINT_REG (%message)
+	base_numeric_PRINT (4, %message)
+.end_macro
+
 .macro PRINT_WORD (%message)
 	base_numeric_PRINT (1, %message)
 .end_macro
