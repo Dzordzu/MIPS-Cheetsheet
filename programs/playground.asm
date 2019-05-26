@@ -28,7 +28,7 @@
 ###################################################################################
 
 # Check whether $a0 is in the range of (min, max)
-# Returns 1 if yes, 0 if not
+# Returns 1 if yes, 0 if not ($v1)
 .macro IN_IMMEDIATE_EXCLUSIVE_RANGE(%min, %max)
 
 	# Ensure $t1 is safe
@@ -491,6 +491,43 @@ vin_dec_test:
 ###################################################################################
 ###################################################################################
 ###################################################################################
+
+.macro IS_LETTER
+	addiu $sp, $sp, -4
+	sw $t0, ($sp)
+	
+	IN_IMMEDIATE_EXCLUSIVE_RANGE(96, 123)
+	move $t0, $v1
+	IN_IMMEDIATE_EXCLUSIVE_RANGE(64, 91)
+	or $v0, $v1, $t0
+	
+	lw $t0, ($sp)
+	addiu $sp, $sp, 4
+.end_macro
+
+.macro IS_LETTER (%code)
+	lb $a0, %code
+	IS_LETTER
+.end_macro 
+
+
+.macro IS_NUMBER
+	IN_IMMEDIATE_EXCLUSIVE_RANGE(47, 58)
+	move $v0, $v1
+.end_macro
+
+.macro IS_NUMBER (%code)
+	lb $a0, %code
+	IS_NUMBER
+.end_macro 
+
+.data
+code_test: .byte 'a'
+
+.text
+	IS_NUMBER code_test
+	move $s0, $v0
+	PRINT_WORD $s0
 
 
 
