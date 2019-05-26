@@ -28,6 +28,11 @@ allocated_bytes: .word 0
 ###################################################################################
 
 .macro COMPARE_STR
+
+	addiu $sp, $sp, -8
+	sw $t0, ($sp)
+	sw $t1, 4($sp)
+
 	li $v0, 1
 	addiu $a0, $a0, -1
 	addiu $a1, $a1, -1		
@@ -66,6 +71,9 @@ equalZero:
 notEqual:
 	li $v0, 0
 end:
+	lw $t1, 4($sp)
+	lw $t0, 4($sp)
+	addiu $sp, $sp, 8
 .end_macro
 
 .macro COMPARE_STR (%str1, %str2)
