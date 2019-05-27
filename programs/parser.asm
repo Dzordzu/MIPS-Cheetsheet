@@ -7,13 +7,20 @@ i_MULT: .asciiz "MULT"
 i_JR: .asciiz "JR"
 i_JAL: .asciiz "JAL"
 
-buffer_input: .space 256
-buffer_str_word: .space 256
-buffer_2: .space 256
-allocated_bytes: .word 0
+buffer_input: .space 64
+buffer_str_word: .space 64
+buffer_2: .space 64
+buffer_param_1: .space 64
+buffer_param_2: .space 64
+buffer_param_3: .space 64
+
 ascii_enter_command: .asciiz "Please enter the command: \n"
 ascii_wrong_input: .asciiz "Wrong input. Please reenter the command\n"
 ascii_end_program: .asciiz "This is the end"
+ascii_start_program: .asciiz "Enter commands amount: "
+stack_bottom_flag: .asciiz "STACKBOTTOMFLAG"
+allocated_bytes: .word 0
+ascii_reversed_stack: .asciiz "Reversed stack: \n "
 
 .data
 	# Useful for debugging and logging
@@ -775,11 +782,11 @@ end:
 	move $a0, $t1
 	addiu $a0, $a0, 1
 	la $a1, buffer_2
-	COPY_ASCII 256
+	COPY_ASCII 64
 	
 	la $a0, buffer_2
 	la $a1, buffer_input
-	COPY_ASCII 256
+	COPY_ASCII 64
 	
 	j end
 
@@ -812,28 +819,130 @@ end:
 ###################################################################################
 ###################################################################################
 
+.macro ADD_ALLOCATED_BYTES (%bytes)
+	addiu $sp, $sp, -4
+	sw $t8, ($sp)
+	
+	lw $t8, allocated_bytes
+	addu $t8, $t8, %bytes
+	sw $t8, allocated_bytes 
+	
+	lw $t8, ($sp)
+	addiu $sp, $sp, 4
+.end_macro
 
-# t0 - iterator
+
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+
+# a0 - string pointer
+.macro ADD_TO_STACK
+	move $a1, $a0
+	LENGTH
+	addiu $sp, $sp, -64
+	ADD_ALLOCATED_BYTES $v0
+	
+	move $a0, $a1
+	la $a1, ($sp)
+	COPY_ASCII 63
+	
+.end_macro
+
+.macro ADD_SPACE_TO_STACK
+	addiu $sp, $sp, -64
+	la $a0, ascii_space
+	la $a1, ($sp)
+	COPY_ASCII 63
+.end_macro 
+
+.macro ADD_NEWLINE_TO_STACK
+	addiu $sp, $sp, -64
+	la $a0, newline
+	la $a1, ($sp)
+	COPY_ASCII 63
+.end_macro 
+
+
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
+###################################################################################
 
 .data
 t0: "\nt0 = "
 
+.macro PRINT_FROM_STACK
+
+loop:
+	move $a0, $sp
+	la $a1, stack_bottom_flag
+	COMPARE_STR 
+	bnez $v0, end
+	move $t7, $a0
+	PRINT_REG $t7
+	addiu $sp, $sp, 64
+	j loop
+end:
+	addiu $sp, $sp, 64
+
+.end_macro
+
+# t0 - iterator
+
 .text
+	PRINT ascii_start_program
 	INPUT_WORD
 	move $t0, $v0
 	addiu $t0, $t0, 1
+stackBottom: 
+	addiu $sp, $sp, -64
+	la $a0, stack_bottom_flag
+	move $a1, $sp
+	COPY_ASCII 63
+	
+	move $a0, $sp
+	la $a1, stack_bottom_flag
+	COMPARE_STR
+	move $a0, $v0
+	PRINT_BYTE $a0
 loop:
 	addiu $t0, $t0, -1
 	
-	PRINT t0
-	PRINT_WORD $t0
-	PRINT newline
+	# PRINT t0
+	# PRINT_WORD $t0
+	# PRINT newline
 	
 	beqz $t0, end
 	
 	PRINT newline
 	PRINT ascii_enter_command
-	INPUT buffer_input, 255
+	INPUT buffer_input, 63
 parseName:
 	PARSE_FROM_INPUT_BUFFER
 	
@@ -928,14 +1037,35 @@ cJR:
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_1, 64
+	
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	
+	la $a0, buffer_param_1
+	ADD_TO_STACK
+	
+	ADD_SPACE_TO_STACK
+	
+	la $a0, i_JR
+	ADD_TO_STACK
+	
+	
 	j loop
 	
 	
 cNOOP: 
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	
+	la $a0, i_NOOP
+	ADD_TO_STACK
+
+	
 	j loop
 	
 	
@@ -982,5 +1112,13 @@ wrongInput:
 	
 	
 end:
+	PRINT newline
+	PRINT ascii_reversed_stack
+	PRINT_FROM_STACK
+	PRINT newline
+	
+	lw $t7, allocated_bytes
+	PRINT_WORD $t7
+	
 	PRINT newline
 	PRINT ascii_end_program
