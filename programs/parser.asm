@@ -983,12 +983,7 @@ cADD:
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
 	
-	LENGTH buffer_input
-	beqz $v0, wrongInput
-	
-	PARSE_FROM_INPUT_BUFFER
-	VALIDATE_REGISTER
-	beqz $v0, wrongInput
+	COPY_ASCII buffer_str_word buffer_param_1, 64
 	
 	LENGTH buffer_input
 	beqz $v0, wrongInput
@@ -996,9 +991,34 @@ cADD:
 	PARSE_FROM_INPUT_BUFFER
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
+	
+	COPY_ASCII buffer_str_word buffer_param_2, 64
+	
+	LENGTH buffer_input
+	beqz $v0, wrongInput
+	
+	PARSE_FROM_INPUT_BUFFER
+	VALIDATE_REGISTER
+	beqz $v0, wrongInput
+	
+	COPY_ASCII buffer_str_word buffer_param_3, 64
 	
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	la $a0, buffer_param_3
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_2
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_1
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, i_ADD
+	ADD_TO_STACK
+	
 	j loop
 	
 	
@@ -1010,12 +1030,16 @@ cADDI:
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_1, 64
+	
 	LENGTH buffer_input
 	beqz $v0, wrongInput
 	
 	PARSE_FROM_INPUT_BUFFER
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
+	
+	COPY_ASCII buffer_str_word buffer_param_2 64
 	
 	LENGTH buffer_input
 	beqz $v0, wrongInput
@@ -1024,8 +1048,24 @@ cADDI:
 	VALIDATE_IMMEDIATE
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_3, 64
+	
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	la $a0, buffer_param_3
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_2
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_1
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, i_ADDI
+	ADD_TO_STACK
+	
 	j loop
 	
 	
@@ -1043,12 +1083,9 @@ cJR:
 	bnez $v0, wrongInput
 	
 	ADD_NEWLINE_TO_STACK
-	
 	la $a0, buffer_param_1
 	ADD_TO_STACK
-	
 	ADD_SPACE_TO_STACK
-	
 	la $a0, i_JR
 	ADD_TO_STACK
 	
@@ -1077,6 +1114,8 @@ cMULT:
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_1, 64
+	
 	LENGTH buffer_input
 	beqz $v0, wrongInput
 	
@@ -1084,14 +1123,27 @@ cMULT:
 	VALIDATE_REGISTER
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_2, 64
+	
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	la $a0, buffer_param_2
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_1
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, i_MULT
+	ADD_TO_STACK
 	
 	
 	j loop
 
 cJ: 
 cJAL: 
+	COPY_ASCII buffer_str_word buffer_param_2, 64 # XD
 	LENGTH buffer_input
 	beqz $v0, wrongInput
 	
@@ -1099,8 +1151,17 @@ cJAL:
 	VALIDATE_LABEL
 	beqz $v0, wrongInput
 	
+	COPY_ASCII buffer_str_word buffer_param_1, 64
+	
 	LENGTH buffer_input
 	bnez $v0, wrongInput
+	
+	ADD_NEWLINE_TO_STACK
+	la $a0, buffer_param_1
+	ADD_TO_STACK
+	ADD_SPACE_TO_STACK
+	la $a0, buffer_param_2 # XD
+	ADD_TO_STACK
 	
 	j loop
 	
