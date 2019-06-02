@@ -492,4 +492,129 @@ vin_dec_test:
 ###################################################################################
 ###################################################################################
 
+.macro IS_NUMBER
+	IN_IMMEDIATE_EXCLUSIVE_RANGE(47, 58)
+	move $v0, $v1
+.end_macro
+
+.macro IS_NUMBER (%code)
+	lb $a0, %code
+	IS_NUMBER
+.end_macro 
+
+
+.macro VALIDATE_DOUBLE ()
+	addiu $sp, $sp, -4
+	sw $t1, ($sp)
+	
+	move $t1, $a0
+	li $v0, 1
+
+firstIt:	
+	lb $a0, 0($t1)
+	beqz $a0, notok
+	IS_NUMBER
+	beqz $v0, notok
+loopToDot:
+	addiu $t1, $t1, 1
+	lb $a0, 0($t1)
+	beqz $a0, end
+	beq $a0, '\n' end
+	beq $a0, ' ', end
+	beq $a0, '.', loopFromDot
+	IS_NUMBER
+	beqz $v0, notok
+	j loopToDot
+loopFromDot:
+	addiu $t1, $t1, 1
+	lb $a0, 0($t1)
+	beqz $a0, end
+	beq $a0, '\n' end
+	beq $a0, ' ', end
+	IS_NUMBER
+	beqz $v0, notok	
+	j loopFromDot
+notok:
+	li $v0, 0
+end:
+	lw $t1, ($sp)
+	addiu $sp, $sp, 4	
+.end_macro
+
+
+.macro VALIDATE_DOUBLE(%str)
+	la $a0, %str
+	VALIDATE_DOUBLE
+.end_macro 
+
+
+.macro SAVE_DOUBLE (%str, %double) #t1, t2, t0, t3
+	la $t0, %str
+	li $t2, 1
+	
+	li $t1, 0
+	mtc1.d $t1, $f12
+	cvt.d.w $f12, $f12
+	
+toDot:
+	lb $a0, 0($t0)
+	beq $a0, '.', afterDot
+	IS_NUMBER
+	beqz $v0, end
+	
+	# Multiply by 10
+	li $t1, 10
+	mtc1.d $t1, $f2
+	cvt.d.w $f2, $f2
+	mul.d $f12, $f12, $f2
+	
+	# Add number
+	sub $a0, $a0, 48
+	mtc1.d $a0, $f2
+	cvt.d.w $f2, $f2
+	add.d $f12, $f12, $f2
+	
+	addiu $t0, $t0, 1
+	j toDot
+	
+	
+afterDot:
+	# Load sign
+	addiu $t0, $t0, 1
+	lb $a0, 0($t0)
+	IS_NUMBER
+	beqz $v0, end
+	subiu $a0, $a0, 48
+	mtc1.d $a0, $f2
+	cvt.d.w $f2, $f2
+	
+	move $t3, $t2
+loop:
+	beqz $t3, loopEnded
+	# Divide by 10
+	li $t1, 10
+	mtc1.d $t1, $f0
+	cvt.d.w $f0, $f0
+	div.d $f2, $f2, $f0
+	subiu $t3, $t3, 1
+	j loop
+loopEnded:
+	add.d $f12, $f12, $f2
+	addiu $t2, $t2 1
+	j afterDot
+	
+end:
+	s.d $f12, %double
+.end_macro
+
+
+.data
+tst: .asciiz "12.222229999999999999999999999999999999999"
+tstd: .double 0
+.text 
+	SAVE_DOUBLE tst, tstd
+	l.d $f12, tstd
+	li $v0, 3
+	syscall
+
 
